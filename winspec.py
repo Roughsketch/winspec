@@ -7,73 +7,89 @@ from wmi import WMI
 from win32com.client import GetObject
 
 def WMIQuery(value, mgmtclass):
-    w = WMI('.')
-    result = w.query("SELECT " + value + " FROM " + mgmtclass)
-    return eval('result[0].' + value)
+	w = WMI('.')
+	result = w.query('SELECT ' + value + ' FROM Win32_' + mgmtclass)
+	return eval('result[0].' + value)
 
 def Memory():
-    Free = int(WMIQuery('FreePhysicalMemory', 'Win32_OperatingSystem')) / 1024
-    Total = int(WMIQuery('TotalVisibleMemorySize', 'Win32_OperatingSystem')) / 1024
-    Percent = Free / float(Total)
+	Free = int(WMIQuery('FreePhysicalMemory', 'OperatingSystem')) / 1024
+	Total = int(WMIQuery('TotalVisibleMemorySize', 'OperatingSystem')) / 1024
+	Percent = Free / float(Total)
 
-    returnVal = ""
-    if Percent <= .1:
-        returnVal = Fore.RED
-    elif Percent <= .5:
-        returnVal = Fore.YELLOW
-    else:
-        returnVal = Fore.GREEN
+	returnVal = ''
+	if Percent <= .1:
+		returnVal = Fore.RED
+	elif Percent <= .5:
+		returnVal = Fore.YELLOW
+	else:
+		returnVal = Fore.GREEN
 
-    returnVal += str(Free) + Fore.WHITE + "MB/"
-    returnVal += str(Total) + "MB"
-    return returnVal
+	returnVal += str(Total - Free) + Fore.WHITE + 'MB/'
+	returnVal += str(Total) + 'MB'
+	return returnVal
 
 def Resolution():
-    returnVal = str(WMIQuery('ScreenWidth', 'Win32_DesktopMonitor')) + 'x'
-    returnVal += str(WMIQuery('ScreenHeight', 'Win32_DesktopMonitor'))
-    return returnVal
+	returnVal = str(WMIQuery('ScreenWidth', 'DesktopMonitor')) + 'x'
+	returnVal += str(WMIQuery('ScreenHeight', 'DesktopMonitor'))
+	return returnVal
 
 def Harddrive():
-    Free = int(WMIQuery('FreeSpace', 'Win32_LogicalDisk')) / 1024**3
-    Size = int(WMIQuery('Size', 'Win32_LogicalDisk')) / 1024**3
-    Percent = Free / float(Size)
+	Free = int(WMIQuery('FreeSpace', 'LogicalDisk')) / 1024**3
+	Size = int(WMIQuery('Size', 'LogicalDisk')) / 1024**3
+	Percent = Free / float(Size)
 
-    returnVal = Fore.CYAN + 'Disk: '
-    if Percent <= .1:
-        returnVal += Fore.RED
-    elif Percent <= .5:
-        returnVal += Fore.YELLOW
-    else:
-        returnVal += Fore.GREEN
+	returnVal = ''
+	if Percent <= .1:
+		returnVal += Fore.RED
+	elif Percent <= .5:
+		returnVal += Fore.YELLOW
+	else:
+		returnVal += Fore.GREEN
 
-    returnVal += str(Free) + Fore.WHITE + "GB/" + str(Size) + "GB"
-    return returnVal
+	returnVal += str(Size - Free) + Fore.WHITE + 'GB/' + str(Size) + 'GB'
+	return returnVal
+
+def Motherboard():
+	returnVal = str(WMIQuery('Manufacturer', 'BaseBoard')) + ' '
+	returnVal += str(WMIQuery('Product', 'BaseBoard'))
+	return returnVal
+
+def Kernel():
+  return str(WMIQuery('Version', 'OperatingSystem'))
+
+def Processors():
+	return str(WMIQuery('NumberOfCores', 'Processor'))
 
 def CPU():
-    returnVal = str(WMIQuery('Name', 'Win32_Processor'))
-    returnVal = returnVal.replace("(TM)", "")
-    returnVal = returnVal.replace("CPU ", "")
-    return returnVal
+	returnVal = str(WMIQuery('Name', 'Processor'))
+	returnVal = returnVal.replace('(TM)', '')
+	returnVal = returnVal.replace('CPU ', '')
+	return returnVal
 
 def GPU():
-    return str(WMIQuery('Name', 'Win32_VideoController'))
-    
+	return str(WMIQuery('Name', 'VideoController'))
+	
 def UpTime():
-    lastBoot = str(WMIQuery('LastBootUpTime', 'Win32_OperatingSystem'))
-    returnVal = datetime.datetime.now() - datetime.datetime.strptime(lastBoot[0:13],'%Y%m%d%H%M%S')
-    return str(returnVal).split('.')[0]
+	lastBoot = str(WMIQuery('LastBootUpTime', 'OperatingSystem'))
+	returnVal = datetime.datetime.now() - datetime.datetime.strptime(lastBoot[0:13],'%Y%m%d%H%M%S')
+	return str(returnVal).split('.')[0]
 
 def Processes():
-    w = GetObject('winmgmts:')
-    procs = w.InstancesOf('Win32_Process')
-    return str(len(procs))
-    
+	w = GetObject('winmgmts:')
+	procs = w.InstancesOf('Win32_Process')
+	return str(len(procs))
+
+def Programs():
+	w = GetObject('winmgmts:')
+	progs = w.InstancesOf('Win32_Product')
+	return str(len(progs))
+
 def SetPosition(width, height):
-    return '\033[' + str(height) + ';' + str(width) + 'H'
+	return '\033[' + str(height) + ';' + str(width) + 'H'
 
 init(autoreset=True)
 
-winLogo = "\n\n\033[31m          ,,,,,,,,,\n\
+winLogo = '\n\n\033[31m          ,,,,,,,,,\n\
         \033[31mII?++?II7$$$:,                 \n\
        \033[31m$I??++?I77$ZZOO                  \n\
        \033[31m7I?++??I77$ZZO8 \033[32m &,           ,: \n\
@@ -95,9 +111,11 @@ winLogo = "\n\n\033[31m          ,,,,,,,,,\n\
 \033[34m,``          +I \033[33mI7Z$$77II??++??II       \n\
                \033[33m ZZ$$77II?+++??IO        \n\
                  \033[33m Z777I??++?IZZ         \n\
-                    \033[33m ```````       "
+                    \033[33m ```````       '
 
 print Style.BRIGHT + winLogo
+
+print SetPosition(41, 4) + 'Getting computer information...' + SetPosition(79, 24)
 
 Username = Style.BRIGHT + Fore.CYAN + os.environ['USERNAME']
 Computername = Style.BRIGHT + Fore.CYAN + os.environ['COMPUTERNAME']
@@ -106,15 +124,20 @@ output = SetPosition(41, 4) + Username
 output += Fore.WHITE + '@'
 output += Computername
 output += SetPosition(41, 6) + 'OS: ' + Fore.WHITE + platform.system() + ' ' + platform.release();
-output += SetPosition(41, 7) + Fore.CYAN + "Resolution: " + Fore.WHITE + Resolution()
-output += SetPosition(41, 8) + Fore.CYAN + "Memory: " + Fore.WHITE + Memory()
-output += SetPosition(41, 9) + Harddrive();
-output += SetPosition(41, 10) + Fore.CYAN + "CPU: " + Fore.WHITE + CPU();
-output += SetPosition(41, 11) + Fore.CYAN + "GPU: " + Fore.WHITE + GPU();
-output += SetPosition(41, 12) + Fore.CYAN + "Uptime: " + Fore.WHITE + UpTime();
-output += SetPosition(41, 13) + Fore.CYAN + "Processes: " + Fore.WHITE + Processes();
+output += SetPosition(41, 7) + Fore.CYAN + 'Resolution: ' + Fore.WHITE + Resolution()
+output += SetPosition(41, 8) + Fore.CYAN + 'Memory: ' + Fore.WHITE + Memory()
+output += SetPosition(41, 9) + Fore.CYAN + 'Disk: ' + Fore.WHITE + Harddrive();
+output += SetPosition(41, 10) + Fore.CYAN + 'CPU Cores: ' + Fore.WHITE + Processors();
+output += SetPosition(41, 11) + Fore.CYAN + 'CPU: ' + Fore.WHITE + CPU();
+output += SetPosition(41, 12) + Fore.CYAN + 'GPU: ' + Fore.WHITE + GPU();
+output += SetPosition(41, 13) + Fore.CYAN + 'Kernel: ' + Fore.WHITE + Kernel();
+output += SetPosition(41, 14) + Fore.CYAN + 'MoBo: ' + Fore.WHITE + Motherboard();
+output += SetPosition(41, 15) + Fore.CYAN + 'Uptime: ' + Fore.WHITE + UpTime();
+output += SetPosition(41, 16) + Fore.CYAN + 'Processes: ' + Fore.WHITE + Processes();
+output += SetPosition(41, 17) + Fore.CYAN + 'Programs: ' + Fore.WHITE + Programs();
 output += SetPosition(79, 24)
 
+print SetPosition(41, 4) + ' ' * 35
 print output
 raw_input()
 
