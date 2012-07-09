@@ -16,16 +16,15 @@ def Memory():
 	Total = int(WMIQuery('TotalVisibleMemorySize', 'OperatingSystem')) / 1024
 	Percent = Free / float(Total)
 
-	returnVal = ''
 	if Percent <= .1:
-		returnVal = Fore.RED
+		Color = Fore.RED
 	elif Percent <= .5:
-		returnVal = Fore.YELLOW
+		Color = Fore.YELLOW
 	else:
-		returnVal = Fore.GREEN
+		Color = Fore.GREEN
 
-	returnVal += str(Total - Free) + Fore.WHITE + 'MB/'
-	returnVal += str(Total) + 'MB'
+	returnVal = Color + str(Total - Free) + Fore.WHITE + 'MB/' + str(Total) + 'MB ('
+	returnVal += Color + str(int(Free/float(Total)*100)) + Fore.WHITE + '%)'
 	return returnVal
 
 def Resolution():
@@ -34,20 +33,20 @@ def Resolution():
 	return returnVal
 
 def Harddrive():
-	Free = int(WMIQuery('FreeSpace', 'LogicalDisk')) / 1024**3
-	Size = int(WMIQuery('Size', 'LogicalDisk')) / 1024**3
-	Percent = Free / float(Size)
+  Free = int(WMIQuery('FreeSpace', 'LogicalDisk')) / 1024**3
+  Size = int(WMIQuery('Size', 'LogicalDisk')) / 1024**3
+  Percent = Free / float(Size)
 
-	returnVal = ''
-	if Percent <= .1:
-		returnVal += Fore.RED
-	elif Percent <= .5:
-		returnVal += Fore.YELLOW
-	else:
-		returnVal += Fore.GREEN
+  if Percent <= .1:
+    Color = Fore.RED
+  elif Percent <= .5:
+    Color = Fore.YELLOW
+  else:
+    Color = Fore.GREEN
 
-	returnVal += str(Size - Free) + Fore.WHITE + 'GB/' + str(Size) + 'GB'
-	return returnVal
+  returnVal = Color + str(Size - Free) + Fore.WHITE + 'GB/' + str(Size) + 'GB ('
+  returnVal += Color + str(int((Size - Free)/float(Size)*100)) + Fore.WHITE + '%)'
+  return returnVal
 
 def Motherboard():
 	returnVal = str(WMIQuery('Manufacturer', 'BaseBoard')) + ' '
@@ -135,6 +134,7 @@ output += SetPosition(41, 14) + Fore.CYAN + 'MoBo: ' + Fore.WHITE + Motherboard(
 output += SetPosition(41, 15) + Fore.CYAN + 'Uptime: ' + Fore.WHITE + UpTime();
 output += SetPosition(41, 16) + Fore.CYAN + 'Processes: ' + Fore.WHITE + Processes();
 output += SetPosition(41, 17) + Fore.CYAN + 'Programs: ' + Fore.WHITE + Programs();
+output += SetPosition(41, 20) + Fore.CYAN + 'Date: ' + Fore.WHITE + str(datetime.datetime.now())[0:19]
 output += SetPosition(79, 24)
 
 print SetPosition(41, 4) + ' ' * 35
